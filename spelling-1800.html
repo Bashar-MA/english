@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>IELTS Listening Spelling: 1800 words</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="home"><div class="wrap">
+  <header class="hd">
+    <div><h1>IELTS Listening spelling: 1800 words</h1><p>Listen to a word in a British voice, type it, and check your spelling.</p><nav class="links"><a href="index.html">Home</a><a href="spelling-1200.html">Switch to 1200 words</a><a href="typing.html">Typing speed</a></nav></div>
+    <button class="ic" id="gh" data-ic="gear" aria-label="Settings"></button>
+  </header>
+  <nav class="tabs">
+    <button data-t="all" class="on">All words</button>
+    <button data-t="cat">By category</button>
+    <button data-t="mis">Mistakes<span id="mc">0</span></button>
+  </nav>
+  <label class="len">Words per session
+    <select id="len"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="0">All</option></select>
+  </label>
+  <section id="p-all">
+    <p class="mu" style="margin-bottom:20px"><span id="total"></span> words from every category, in random order.</p>
+    <button class="listen" id="go-all">Start practice</button>
+  </section>
+  <section id="p-cat" hidden><div id="cats" class="grid"></div></section>
+  <section id="p-mis" hidden>
+    <div class="row2"><button class="listen" id="go-mis">Practice mistakes</button><button class="ghost" id="clr">Clear all</button></div>
+    <ul id="mlist" class="list"></ul>
+  </section>
+</div></div>
+
+<div id="quiz" hidden>
+  <div class="top">
+    <button class="ic" id="exit" data-ic="x" aria-label="Exit practice"></button>
+    <div class="bar"><i id="bar"></i></div>
+    <span class="tm" id="tm" title="Time elapsed">00:00</span>
+    <button class="ic" id="gq" data-ic="gear" aria-label="Settings"></button>
+  </div>
+  <main>
+    <h2 class="q">Type what you hear</h2>
+    <div class="row">
+      <button class="listen" id="listen"><span data-ic="spk" style="line-height:0"></span>Listen <small style="color:#cfe0ff;font-weight:400">[Ctrl + Space]</small></button>
+      <button class="eye" id="eye" data-ic="eye" aria-label="Show the word"></button>
+    </div>
+    <div id="peek" hidden></div>
+    <input id="ans" type="text" placeholder="Type the spelling here..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the word you hear">
+    <p class="mu" id="sc"></p>
+  </main>
+  <footer class="ft" id="ft"><div class="fti"><div id="fb"></div><button class="chk" id="chk">CHECK</button></div></footer>
+</div>
+
+<div id="result" hidden><div class="wrap res">
+  <h2 id="rh"></h2><p class="mu" id="rp"></p>
+  <ul id="rbad" class="list"></ul>
+  <div class="row2" style="justify-content:center"><button class="listen" id="retry">Retry wrong words</button><button class="ghost" id="rhome">Back to home</button></div>
+</div></div>
+
+<dialog id="set">
+  <h3>Settings</h3>
+  <label>Voice <select id="voice"></select></label>
+  <label>Speed <input type="range" id="rate" min="0.5" max="1.2" step="0.05"></label>
+  <label>Play each new word automatically <input type="checkbox" id="play"></label>
+  <label>Move on automatically when correct <input type="checkbox" id="auto"></label>
+  <label>Use pronunciation fixes <input type="checkbox" id="fix"></label>
+  <p class="mu" id="vhint"></p>
+  <button class="listen" id="sclose">Done</button>
+</dialog>
+
+<script src="words-1800.js"></script>
+<script>const CFG={id:"1800",raw:WORDS_1800};</script>
+<script src="pron.js"></script>
+<script src="spelling.js"></script>
+</body>
+</html>

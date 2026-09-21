@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>IELTS Word Typing Speed Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+.opts{display:flex;gap:18px;flex-wrap:wrap;margin:24px 0 18px}
+.opts label{display:flex;flex-direction:column;gap:6px;color:var(--mu);font-size:14px}
+.opts .chkl{flex-direction:row;align-items:center;gap:8px;align-self:flex-end;padding-bottom:10px}
+.stats{display:flex;gap:34px;margin:10px 0 14px}
+.stats div{display:flex;flex-direction:column}.stats b{font-size:34px;font-variant-numeric:tabular-nums}.stats span{color:var(--mu);font-size:14px}
+#txt{position:relative;height:calc(3 * 2.3em);overflow:hidden;font-size:26px;line-height:2.3em;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:0 22px;cursor:text;color:#5f6b85}
+.w{display:inline-block;margin-right:.55em;border-radius:6px}
+.w.cur{background:#16233f}
+.w i{font-style:normal}.w i.ok{color:var(--tx)}.w i.bad{color:var(--rd)}
+.w.done.ok{color:var(--tx)}.w.done.bad{color:var(--rd);text-decoration:underline}
+.w.over{outline:2px solid var(--rd)}
+#inp{width:100%;margin-top:16px;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:18px;font:600 26px Outfit,system-ui,sans-serif;color:var(--tx)}
+#inp:focus{outline:none;border-color:var(--bl)}
+.big{display:flex;gap:40px;flex-wrap:wrap;justify-content:center;margin:24px 0}
+.big div{display:flex;flex-direction:column;align-items:center}.big b{font-size:52px}.big span{color:var(--mu)}
+table{width:100%;border-collapse:collapse;margin-top:8px}td,th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{color:var(--mu);font-weight:600}
+h3{margin:28px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hd">
+    <div><h1>Typing speed test</h1><p>Type words from the IELTS lists to build speed and accuracy.</p>
+    <nav class="links"><a href="index.html">Home</a><a href="spelling-1200.html">Spelling: 1200 words</a><a href="spelling-1800.html">Spelling: 1800 words</a></nav></div>
+  </header>
+
+  <div class="opts">
+    <label>Word list <select id="src"><option value="1200">1200 words</option><option value="1800">1800 words</option><option value="both">Both lists</option></select></label>
+    <label>Category <select id="cat"></select></label>
+    <label>Time <select id="dur"><option value="15">15 seconds</option><option value="30">30 seconds</option><option value="60" selected>60 seconds</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select></label>
+    <label class="chkl"><input type="checkbox" id="ic" checked> Ignore capital letters</label>
+  </div>
+
+  <div class="stats"><div><b id="left">60</b><span>seconds left</span></div><div><b id="wpm">0</b><span>WPM</span></div><div><b id="acc">100%</b><span>accuracy</span></div></div>
+
+  <div id="test">
+    <div id="txt"></div>
+    <input id="inp" type="text" placeholder="Start typing. Press space after each word." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the highlighted word">
+    <div class="row2" style="margin-top:18px"><button class="ghost" id="restart">Restart (Esc)</button><span class="mu">The timer starts when you type the first letter.</span></div>
+  </div>
+
+  <div id="res" hidden>
+    <div class="big"><div><b id="rw"></b><span>WPM (net)</span></div><div><b id="rr"></b><span>raw WPM</span></div><div><b id="ra"></b><span>accuracy</span></div><div><b id="rc"></b><span>correct words</span></div></div>
+    <p class="mu" id="best" style="text-align:center"></p>
+    <div class="row2" style="justify-content:center"><button class="listen" id="again">Try again</button></div>
+    <h3>Words to review</h3><ul id="wrong" class="list"></ul>
+    <h3>Recent results</h3><table><thead><tr><th>WPM</th><th>Accuracy</th><th>Time</th><th>List</th></tr></thead><tbody id="hist"></tbody></table>
+  </div>
+</div>
+
+<script src="words-1200.js"></script>
+<script src="words-1800.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const parse=r=>r.trim().split("\n").map(l=>{const[n,w]=l.split("|");return{n,w:w.split(",").map(x=>x.trim()).filter(Boolean)}});
+const LISTS={"1200":parse(WORDS_1200),"1800":parse(WORDS_1800)};
+const KEY="ielts-typing-v1";
+let H={hist:[],best:{}};try{H=Object.assign(H,JSON.parse(localStorage.getItem(KEY)))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(H))}catch(e){}};
+const shuffle=a=>{a=[...a];for(let i=a.length;i>1;){const j=Math.random()*i--|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const srcLists=()=>$("#src").value==="both"?[...LISTS["1200"],...LISTS["1800"]]:LISTS[$("#src").value];
+
+function fillCats(){
+  const names=[...new Set(srcLists().map(c=>c.n))];
+  $("#cat").innerHTML='<option value="">All categories</option>'+names.map(n=>`<option>${esc(n)}</option>`).join("");
+}
+function pool(){
+  const c=$("#cat").value;
+  const toks=srcLists().filter(x=>!c||x.n===c).flatMap(x=>x.w).flatMap(w=>w.split(/\s+/)).filter(Boolean);
+  return [...new Set(toks)];
+}
+
+let T=null;
+function newTest(){
+  if(T&&T.iv)clearInterval(T.iv);
+  const p=pool();let words=[];
+  while(words.length<300)words.push(...shuffle(p));
+  const dur=+$("#dur").value;
+  T={words,i:0,started:false,dur,t0:0,tot:0,good:0,chars:0,okChars:0,okWords:0,res:[],iv:0,done:false};
+  $("#txt").innerHTML=words.map((w,i)=>`<span class="w" id="w${i}">${[...w].map(c=>`<i>${esc(c)}</i>`).join("")}</span>`).join(" ");
+  $("#txt").scrollTop=0;
+  $("#test").hidden=false;$("#res").hidden=true;
+  $("#left").textContent=dur;$("#wpm").textContent=0;$("#acc").textContent="100%";
+  const s=$("#inp");s.value="";s.disabled=false;s.focus();mark();
+}
+const eq=(a,b)=>$("#ic").checked?a.toLowerCase()===b.toLowerCase():a===b;
+function mark(){
+  const el=$("#w"+T.i),w=T.words[T.i],v=$("#inp").value;
+  document.querySelectorAll(".w.cur").forEach(e=>e.classList.remove("cur"));
+  el.classList.add("cur");el.classList.toggle("over",v.length>w.length);
+  [...el.children].forEach((c,j)=>c.className=j<v.length?(eq(v[j],w[j])?"ok":"bad"):"");
+  const box=$("#txt"),lh=parseFloat(getComputedStyle(box).lineHeight);
+  box.scrollTop=Math.max(0,el.offsetTop-lh);
+}
+function tick(){
+  const el=(Date.now()-T.t0)/1000,left=Math.max(0,T.dur-el);
+  $("#left").textContent=Math.ceil(left);
+  if(el>1)$("#wpm").textContent=Math.round(T.okChars/5/(el/60));
+  if(left<=0)finish();
+}
+function commit(){
+  const w=T.words[T.i],t=$("#inp").value.trim(),ok=eq(t,w);
+  T.chars+=t.length+1;
+  if(ok){T.okChars+=w.length+1;T.okWords++}else T.res.push({w,t});
+  const el=$("#w"+T.i);el.classList.remove("cur","over");el.classList.add("done",ok?"ok":"bad");
+  T.i++;$("#inp").value="";mark();
+}
+$("#inp").addEventListener("input",e=>{
+  if(!T||T.done)return;
+  let v=e.target.value;
+  if(!T.started&&v.trim()){T.started=true;T.t0=Date.now();T.iv=setInterval(tick,100)}
+  if(/^\s+$/.test(v)){e.target.value="";return}
+  if(e.inputType==="insertText"&&e.data){
+    T.tot++;const w=T.words[T.i],n=v.replace(/\s+$/,"").length;
+    const ok=/\s/.test(e.data)?eq(v.trim(),w):eq(e.data,w[n-1]||"");
+    if(ok)T.good++;
+    $("#acc").textContent=Math.round(T.good/T.tot*100)+"%";
+  }
+  if(/\s$/.test(v))return commit();
+  mark();
+});
+function finish(){
+  clearInterval(T.iv);T.done=true;$("#inp").disabled=true;
+  const m=T.dur/60,net=Math.round(T.okChars/5/m),raw=Math.round((T.chars+$("#inp").value.length)/5/m),acc=T.tot?Math.round(T.good/T.tot*100):100;
+  $("#rw").textContent=net;$("#rr").textContent=raw;$("#ra").textContent=acc+"%";$("#rc").textContent=T.okWords;
+  const prev=H.best[T.dur]||0;
+  $("#best").textContent=net>prev?`New personal best for ${T.dur} seconds.`:`Your best for ${T.dur} seconds is ${prev} WPM.`;
+  H.best[T.dur]=Math.max(prev,net);
+  H.hist.unshift({w:net,a:acc,d:T.dur,s:$("#src").value==="both"?"both":$("#src").value});H.hist=H.hist.slice(0,10);save();
+  $("#wrong").innerHTML=T.res.length?T.res.slice(0,30).map(r=>`<li><div><b>${esc(r.w)}</b><small>you typed “${esc(r.t)}”</small></div></li>`).join(""):'<li class="empty">No mistyped words.</li>';
+  $("#hist").innerHTML=H.hist.map(h=>`<tr><td>${h.w}</td><td>${h.a}%</td><td>${h.d}s</td><td>${h.s}</td></tr>`).join("");
+  $("#test").hidden=true;$("#res").hidden=false;
+}
+$("#txt").onclick=()=>$("#inp").focus();
+$("#restart").onclick=$("#again").onclick=newTest;
+["src","dur","cat","ic"].forEach(id=>$("#"+id).onchange=()=>{if(id==="src")fillCats();newTest()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();newTest()}});
+fillCats();newTest();
+</script>
+</body>
+</html>
